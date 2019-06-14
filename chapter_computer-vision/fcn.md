@@ -5,16 +5,40 @@ We previously discussed semantic segmentation using each pixel in an image for c
 
 We will first import the package or module needed for the experiment and then explain the transposed convolution layer.
 
-```{.python .input  n=2}
+```{.python .input  n=1}
 import sys
 sys.path.insert(0, '..')
 
 %matplotlib inline
 import d2l
-from mxnet import gluon, image, init, nd
+from mxnet import gluon, image, init, nd, np, npx
 from mxnet.gluon import data as gdata, loss as gloss, model_zoo, nn
-import numpy as np
+# import numpy as np
 import sys
+npx.set_np()
+```
+
+```{.json .output n=1}
+[
+ {
+  "ename": "ModuleNotFoundError",
+  "evalue": "No module named 'mxnet.npx'",
+  "output_type": "error",
+  "traceback": [
+   "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+   "\u001b[0;31mModuleNotFoundError\u001b[0m                       Traceback (most recent call last)",
+   "\u001b[0;32m<ipython-input-1-55ccc5c5b96e>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0mget_ipython\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mrun_line_magic\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'matplotlib'\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m'inline'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 5\u001b[0;31m \u001b[0;32mimport\u001b[0m \u001b[0md2l\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      6\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mmxnet\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mgluon\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mimage\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0minit\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnd\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnp\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnpx\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      7\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mmxnet\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgluon\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mdata\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mgdata\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mloss\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mgloss\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mmodel_zoo\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnn\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;32m~/Documents/d2l-en/d2l/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mbase\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      2\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mfigure\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mdata\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mmodel\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mtrain\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;32m~/Documents/d2l-en/d2l/base.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mtime\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 4\u001b[0;31m \u001b[0;32mimport\u001b[0m \u001b[0mmxnet\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mmx\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      5\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mmxnet\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mnd\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      6\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;32m~/Documents/incubator-mxnet/python/mxnet/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     28\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mutil\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mis_np_array\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnp_array\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0muse_np_array\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0muse_np\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     29\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mbase\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 30\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mcontrib\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     31\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mndarray\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     32\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mndarray\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mnd\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;32m~/Documents/incubator-mxnet/python/mxnet/contrib/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     25\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mndarray\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mnd\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     26\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 27\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mautograd\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     28\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mtensorboard\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     29\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;32m~/Documents/incubator-mxnet/python/mxnet/contrib/autograd.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     27\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mbase\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mmx_uint\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mNDArrayHandle\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mc_array\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mc_array_buf\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mc_handle_array\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     28\u001b[0m \u001b[0;31m# pylint: disable= unused-import\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 29\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mndarray\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mNDArray\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mzeros_like\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0m_GRAD_REQ_MAP\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     30\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     31\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;32m~/Documents/incubator-mxnet/python/mxnet/ndarray/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     18\u001b[0m \u001b[0;34m\"\"\"NDArray API of MXNet.\"\"\"\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     19\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 20\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0m_internal\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mcontrib\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mlinalg\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mop\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mrandom\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0msparse\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mutils\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mimage\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mndarray\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnumpy\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     21\u001b[0m \u001b[0;31m# pylint: disable=wildcard-import, redefined-builtin\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     22\u001b[0m \u001b[0;32mtry\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;32m~/Documents/incubator-mxnet/python/mxnet/ndarray/utils.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     30\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0msparse\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0marray\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0m_sparse_array\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     31\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0msparse\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0m_ndarray_cls\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 32\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mnpx\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mset_np_shape\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     33\u001b[0m \u001b[0;32mtry\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     34\u001b[0m     \u001b[0;32mimport\u001b[0m \u001b[0mscipy\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msparse\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mspsp\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;31mModuleNotFoundError\u001b[0m: No module named 'mxnet.npx'"
+  ]
+ }
+]
 ```
 
 ## Transposed Convolution Layer
@@ -22,8 +46,8 @@ import sys
 The transposed convolution layer takes its name from the matrix transposition operation. In fact, convolution operations can also be achieved by matrix multiplication. In the example below, we define input `X` with a height and width of 4 respectively, and a convolution kernel `K` with a height and width of 3 respectively. Print the output of the 2D convolution operation and the convolution kernel. As you can see, the output has a height and a width of 2.
 
 ```{.python .input}
-X = nd.arange(1, 17).reshape((1, 1, 4, 4))
-K = nd.arange(1, 10).reshape((1, 1, 3, 3))
+X = np.arange(1, 17).reshape((1, 1, 4, 4))
+K = np.arange(1, 10).reshape((1, 1, 3, 3))
 conv = nn.Conv2D(channels=1, kernel_size=3)
 conv.initialize(init.Constant(K))
 conv(X), K
@@ -32,10 +56,10 @@ conv(X), K
 Next, we rewrite convolution kernel `K` as a sparse matrix `W` with a large number of zero elements, i.e. a weight matrix. The shape of the weight matrix is (4,16), where the non-zero elements are taken from the elements in convolution kernel `K`. Enter `X` and concatenate line by line to get a vector of length 16. Then, perform matrix multiplication for `W` and the `X` vector to get a vector of length 4. After the transformation, we can get the same result as the convolution operation above. As you can see, in this example, we implement the convolution operation using matrix multiplication.
 
 ```{.python .input}
-W, k = nd.zeros((4, 16)), nd.zeros(11)
+W, k = np.zeros((4, 16)), np.zeros(11)
 k[:3], k[4:7], k[8:] = K[0, 0, 0, :], K[0, 0, 1, :], K[0, 0, 2, :]
 W[0, 0:11], W[1, 1:12], W[2, 4:15], W[3, 5:16] = k, k, k, k
-nd.dot(W, X.reshape(16)).reshape((1, 1, 2, 2)), W
+np.dot(W, X.reshape(16)).reshape((1, 1, 2, 2)), W
 ```
 
 Now we will describe the convolution operation from the perspective of matrix multiplication. Let the input vector be $\boldsymbol{x}$ and weight matrix be $\boldsymbol{W}$. The implementation of the convolutional forward computation function can be considered as the multiplication of the function input by the weight matrix to output the vector $\boldsymbol{ y} = \boldsymbol{W}\boldsymbol{x}$. We know that back propagation needs to be based on chain rules. Because $\nabla_{\boldsymbol{x}} \boldsymbol{y} = \boldsymbol{W}^\top$, the implementation of the convolutional back propagation function can be considered as the multiplication of the function input by the transposed weight matrix $\boldsymbol{W}^\top$. The transposed convolution layer exchanges the forward computation function and the back propagation function of the convolution layer. These two functions can be regarded as the multiplication of the function input vectors by $\boldsymbol{W}^\top$ and $\boldsymbol{W}$, respectively.
@@ -48,7 +72,7 @@ Now we will look at an example. Construct a convolution layer `conv` and let sha
 conv = nn.Conv2D(10, kernel_size=4, padding=1, strides=2)
 conv.initialize()
 
-X = nd.random.uniform(shape=(1, 3, 64, 64))
+X = np.random.uniform(size=(1, 3, 64, 64))
 Y = conv(X)
 Y.shape
 ```
@@ -88,7 +112,7 @@ for layer in pretrained_net.features[:-2]:
 Given an input of a height and width of 320 and 480 respectively, the forward computation of `net` will reduce the height and width of the input to $1/32$ of the original, i.e. 10 and 15.
 
 ```{.python .input  n=7}
-X = nd.random.uniform(shape=(1, 3, 320, 480))
+X = np.random.uniform(size=(1, 3, 320, 480))
 net(X).shape
 ```
 
@@ -124,13 +148,13 @@ def bilinear_kernel(in_channels, out_channels, kernel_size):
         center = factor - 1
     else:
         center = factor - 0.5
-    og = np.ogrid[:kernel_size, :kernel_size]
-    filt = (1 - abs(og[0] - center) / factor) * \
-           (1 - abs(og[1] - center) / factor)
+    filt = (1 - abs(np.arange(kernel_size).reshape((-1, 1)) - center) / factor) * \
+           (1 - abs(np.arange(kernel_size).reshape((1, -1)) - center) / factor)
+    print(filt.shape)
     weight = np.zeros((in_channels, out_channels, kernel_size, kernel_size),
                       dtype='float32')
     weight[range(in_channels), range(out_channels), :, :] = filt
-    return nd.array(weight)
+    return np.array(weight)
 ```
 
 Now, we will experiment with bilinear interpolation upsampling implemented by transposed convolution layers. Construct a transposed convolution layer that magnifies height and width of input by a factor of 2 and initialize its convolution kernel with the `bilinear_kernel` function.
@@ -172,7 +196,7 @@ net[-2].initialize(init=init.Xavier())
 We read the data set using the method described in the previous section. Here, we specify shape of the randomly cropped output image as $320\times 480$, so both the height and width are divisible by 32.
 
 ```{.python .input  n=13}
-crop_size, batch_size, colormap2label = (320, 480), 32, nd.zeros(256**3)
+crop_size, batch_size, colormap2label = (320, 480), 32, np.zeros(256**3)
 for i, cm in enumerate(d2l.VOC_COLORMAP):
     colormap2label[(cm[0] * 256 + cm[1]) * 256 + cm[2]] = i
 voc_dir = d2l.download_voc_pascal(data_dir='../data')
@@ -207,7 +231,7 @@ During predicting, we need to standardize the input image in each channel and tr
 def predict(img):
     X = test_iter._dataset.normalize_image(img)
     X = X.transpose((2, 0, 1)).expand_dims(axis=0)
-    pred = nd.argmax(net(X.as_in_context(ctx[0])), axis=1)
+    pred = np.argmax(net(X.as_in_context(ctx[0])), axis=1)
     return pred.reshape((pred.shape[1], pred.shape[2]))
 ```
 
@@ -215,7 +239,7 @@ To visualize the predicted categories for each pixel, we map the predicted categ
 
 ```{.python .input  n=14}
 def label2image(pred):
-    colormap = nd.array(d2l.VOC_COLORMAP, ctx=ctx[0], dtype='uint8')
+    colormap = np.array(d2l.VOC_COLORMAP, ctx=ctx[0], dtype='uint8')
     X = pred.astype('int32')
     return colormap[X, :]
 ```
